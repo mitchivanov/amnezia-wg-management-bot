@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy>=1.4
+asyncpg
+asyncssh
+pydantic
+python-dotenv
+itsdangerous 

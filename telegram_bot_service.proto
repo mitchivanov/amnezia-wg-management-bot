@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+option go_package = "app/internal/pb/api/v1";
+
+
+// Пакет api.v1 предоставляет сервисы для работы с VPN-ботом
+// API версия: 1.0.0
+package api.v1;
+
+// TelegramBotService предоставляет методы для управления подписками и конфигурацией VPN
+// через Telegram бота.
+//
+// Основные возможности:
+// - Проверка существования пользователя
+// - Управление подписками
+// - Получение конфигурационных ключей
+// - Обработка платежей
+// - Работа с ценами
+service TelegramBotService {
+  // CheckUserExists проверяет наличие пользователя в системе
+  rpc CheckUserExists(UserExistenceRequest) returns (UserExistsResponse) {}
+  
+  // GetSubscriptionStatus возвращает текущий статус подписки пользователя
+  rpc GetSubscriptionStatus(SubscriptionStatusRequest) returns (SubscriptionStatusResponse) {}
+  
+  // GetConfigurationKeys возвращает конфигурационные ключи для VPN-приложения
+  rpc GetConfigurationKeys(ConfigurationKeysRequest) returns (ConfigurationKeysResponse) {}
+  
+  // ProcessSubscriptionPayment обрабатывает оплату подписки
+  rpc ProcessSubscriptionPayment(SubscriptionPaymentRequest) returns (SubscriptionUpdateResponse) {}
+  
+  // GetPrices возвращает текущий список цен
+  rpc GetPrices(Empty) returns (PriceList) {}
+  
+  // SubscribeToPrices подписывается на обновления цен в реальном времени
+  rpc SubscribeToPrices(Empty) returns (stream PriceList) {}
+}
+
+// UserExistenceRequest содержит данные для проверки существования пользователя
+message UserExistenceRequest {
+  // Идентификатор пользователя в Telegram
+  int64 telegram_id = 1;
+}
+
+// UserExistsResponse содержит результат проверки существования пользователя
+message UserExistsResponse {
+  // Флаг, указывающий на наличие пользователя в системе
+  bool exists = 1;
+}
+
+// SubscriptionStatusRequest содержит данные для запроса статуса подписки
+message SubscriptionStatusRequest {
+  // Идентификатор пользователя в Telegram
+  int64 telegram_id = 1;
+}
+
+// SubscriptionStatusResponse содержит информацию о текущем статусе подписки
+message SubscriptionStatusResponse {
+  // Флаг активности подписки
+  bool is_active = 1;
+  // Количество дней до истечения подписки
+  int32 days_until_expiration = 2;
+  // Дата истечения подписки в формате ISO 8601
+  string expiration_date = 3;
+}
+
+// ConfigurationKeysRequest содержит параметры для получения конфигурационных ключей
+message ConfigurationKeysRequest {
+  // Идентификатор пользователя в Telegram
+  int64 telegram_id = 1;
+  // Идентификатор VPN-приложения
+  string vpn_app = 2;
+}
+
+// ConfigurationKeysResponse содержит список конфигурационных ключей
+message ConfigurationKeysResponse {
+  // Список пар ключ-значение конфигурации
+  repeated KeyValuePair keys = 1;
+  
+  // KeyValuePair представляет пару ключ-значение конфигурации
+  message KeyValuePair {
+    // Адрес сервера
+    string server = 1;
+    // Название конфигурационного ключа
+    string key = 2;
+    // Значение конфигурации
+    string value = 3;
+  }
+}
+
+// SubscriptionPaymentRequest содержит данные для обработки оплаты подписки
+message SubscriptionPaymentRequest {
+  // Идентификатор пользователя в Telegram
+  int64 telegram_id = 1;
+  // Длительность оплаченной подписки в днях
+  int32 duration_days = 2;
+}
+
+// SubscriptionUpdateResponse содержит результат обработки оплаты подписки
+message SubscriptionUpdateResponse {
+  // Возможные результаты обработки оплаты
+  enum UpdateResult {
+    // Успешное обновление подписки
+    SUCCESS = 0;
+    // Пользователь не найден
+    USER_NOT_FOUND = 1;
+    // Некорректная длительность подписки
+    INVALID_DURATION = 2;
+  }
+  
+  // Результат операции
+  UpdateResult result = 1;
+  // Обновлённый статус подписки
+  SubscriptionStatusResponse new_status = 2;
+}
+
+// Empty представляет пустое сообщение
+message Empty {}
+
+// PriceList содержит список доступных тарифных планов
+message PriceList {
+  // Список доступных тарифных планов
+  repeated SubscriptionPlan plans = 1;
+}
+
+// SubscriptionPlan представляет тарифный план
+message SubscriptionPlan {
+  // Длительность подписки в днях
+  int32 duration_days = 1;
+  // Базовая стоимость в рублях
+  int64 base_price = 2;
+  // Акционная стоимость в рублях (если есть скидка)
+  optional int64 promo_price = 3;
+}
+
+// Message представляет базовую структуру сообщения
+message Message {
+  // Текстовое содержание сообщения
+  string text = 1;
+  // Опциональная ссылка
+  string url = 2;
+  // Дополнительные данные в произвольном формате
+  string data = 3;
+}
+
+// BroadcastMessage представляет сообщение для массовой рассылки
+message BroadcastMessage {
+  // Содержание сообщения
+  Message message = 1;
+}
+
+// PersonalMessage представляет личное сообщение пользователю
+message PersonalMessage {
+  // Содержание сообщения
+  Message message = 1;
+  // Идентификатор получателя в Telegram
+  int64 telegram_id = 2;
+}
