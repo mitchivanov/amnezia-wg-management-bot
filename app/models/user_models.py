@@ -26,7 +26,6 @@ class SubscriptionPlan(Base):
     duration_days = Column(Integer, nullable=False)  # Длительность подписки в днях
     is_active = Column(Boolean, default=True)  # Активен ли тарифный план
     
-    
     # Отношение с подписками пользователей
     subscriptions = relationship("UserSubscription", back_populates="plan")
     
@@ -39,7 +38,8 @@ class User(Base):
     
     id = Column(Integer, primary_key=True)  # Уникальный идентификатор пользователя
     telegram_user_id = Column(String, nullable=False, unique=True)  # Telegram ID пользователя
-    
+    email = Column(String, nullable=False, unique=True)  # Email пользователя
+    phone = Column(String, nullable=False, unique=True)  # Телефон пользователя
     # Отношение с подписками пользователя
     subscriptions = relationship("UserSubscription", back_populates="user")
     
